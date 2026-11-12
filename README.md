@@ -41,23 +41,36 @@ Predicting airline passenger satisfaction requires extracting subtle interaction
 
 ```mermaid
 flowchart TD
-    Raw[Raw Kaggle Ingestion via CLI] --> Split[Strict 5-Fold Stratified Split]
-    Split --> FeatEng[Domain Feature Engineering<br>• Structural Zero Masks<br>• Touchpoint Ratios<br>• High-Support Frequency Encodings]
+    %% Styling
+    classDef input fill:#f8fafc,stroke:#94a3b8,stroke-width:2px,color:#0f172a;
+    classDef domain fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
+    classDef models fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a;
+    classDef meta fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#0f172a;
+    classDef out fill:#f1f5f9,stroke:#475569,stroke-width:2px,color:#0f172a;
+
+    Raw["Raw Kaggle Ingestion via CLI"] --> Split["Strict 5-Fold Stratified Split (Seed 42)"]
+    Split --> FeatEng["Domain Feature Engineering<br>• Structural Zero Semantic Masks<br>• External Super-Teacher Priors<br>• 3-Way Customer Interaction Profiles"]
     
-    FeatEng --> M1[LightGBM GBDT]
-    FeatEng --> M2[CatBoost Ordered Splits]
-    FeatEng --> M3[XGBoost Exact Depth]
-    FeatEng --> M4[Tabular ResMLP]
+    FeatEng --> M1["LightGBM GBDT (Hist Splitting)"]
+    FeatEng --> M2["CatBoost GBDT (Ordered Categoricals)"]
+    FeatEng --> M3["XGBoost GBDT (Exact Depth Reg)"]
+    FeatEng --> M4["Tabular ResMLP (Quantile Normals)"]
     
-    M1 --> OOF[Out-of-Fold Predictions]
+    M1 --> OOF["5-Fold Out-of-Fold Matrix"]
     M2 --> OOF
     M3 --> OOF
     M4 --> OOF
     
-    OOF --> Logit[Logit-Space Projection<br>z = ln p / 1-p]
-    Logit --> Stacker[Level 2 Ridge Meta-Learner]
-    Stacker --> FinalSub[submission.csv]
-    Stacker --> HTMLRep[reports/solution_preview.html]
+    OOF --> Logit["Logit-Odds Projection: z = ln(p / 1-p)"]
+    Logit --> Stacker["Level 2 Ridge Meta-Learner (C=0.001)"]
+    Stacker --> FinalSub["Verified Final Submission (submission.csv)"]
+    Stacker --> HTMLRep["Live Interactive Showcase (GitHub Pages)"]
+
+    class Raw,Split input;
+    class FeatEng domain;
+    class M1,M2,M3,M4 models;
+    class OOF,Logit,Stacker meta;
+    class FinalSub,HTMLRep out;
 ```
 
 ---

@@ -70,16 +70,30 @@
 To eliminate data leakage, ensure instantaneous iteration speeds, and guarantee full reproducibility across all 10 Apple Silicon CPU cores, we established strict repository-wide engineering constraints:
 
 ```mermaid
-flowchart LR
-    A["Raw Data (CSV)"] --> B["prepare_data.py"]
-    B --> C["train.parquet (Downcasted dtypes)"]
+flowchart TD
+    %% Styling
+    classDef input fill:#f8fafc,stroke:#94a3b8,stroke-width:2px,color:#0f172a;
+    classDef prep fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
+    classDef model fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a;
+    classDef meta fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#0f172a;
+    classDef out fill:#f1f5f9,stroke:#475569,stroke-width:2px,color:#0f172a;
+
+    A["Raw Data (CSV)"] --> B["Polars Schema Downcast & Ingestion"]
+    B --> C["train.parquet (Clean In-Memory Cache)"]
     B --> D["Deterministic 5-Fold Stratified Split (Seed 42)"]
-    C --> E["Zero-as-NaN Survey Transform"]
-    E --> F["L1 Model Training (10 Cores)"]
-    F --> G["Logit Transformation (z = ln(p/(1-p)))"]
-    G --> H["L2 Logistic Meta-Learner (C=0.001)"]
-    H --> I["Validation Gate (check_submission.py)"]
-    I --> J["Kaggle MCP Guarded Upload"]
+    C --> E["Domain Discovery: Zero-as-NaN Survey Masks"]
+    D --> E
+    E --> F["Level-1 Diverse Models (10 Cores Parallel)"]
+    F --> G["Logit Projection: z = ln(p / 1-p)"]
+    G --> H["Level-2 Regularized Meta-Learner (C=0.001)"]
+    H --> I["Validation Gatekeeper (check_submission.py)"]
+    I --> J["Verified Final Submission (submission.csv)"]
+
+    class A input;
+    class B,C,D,E prep;
+    class F model;
+    class G,H meta;
+    class I,J out;
 ```
 
 1. **Parquet Columnar Memory-Mapping:**  
@@ -229,38 +243,48 @@ Inspired by the iterative harnesses documented in top Kaggle solutions (such as 
 
 ```mermaid
 flowchart TD
-    subgraph PhaseA["Phase A: Autonomous Hypothesis & Exploration (AIDE + Gemini 2.5 Flash)"]
+    %% Styling Definitions
+    classDef phaseA fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
+    classDef gate fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a;
+    classDef phaseB fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#0f172a;
+    classDef proto fill:#f1f5f9,stroke:#64748b,stroke-width:1px,color:#334155;
+
+    subgraph Step1["1. Exploration & Screening (Gemini 2.5 Flash)"]
         H1["Data Profiling & Zero-Rating Discovery"]
         H2["High-Throughput Feature Generation"]
-        H3["Fast Tree Exploration (10-Core Local)"]
-        H4["Screening Ledger (scores, runtimes, memory)"]
+        H3["Fast Tree Exploration (10-Core CPU)"]
+        H4["Screening Ledger (Scores, Runtimes, Memory)"]
         H1 --> H2 --> H3 --> H4
     end
 
-    subgraph Gate["Validation & Code Governance Gate (AGENTS.md)"]
-        V1["Invariant Check: check_submission.py"]
-        V2["5-Fold CV Seed-42 Gate"]
-        V3["Memory-Mapping: Parquet Only"]
-        PhaseA --> Gate
+    subgraph Step2["2. Validation & Code Governance Gate"]
+        V1["Invariant Gate: check_submission.py"]
+        V2["Fixed 5-Fold Stratified Split (Seed 42)"]
+        V3["Parquet Zero-Leakage Memory Mapping"]
+        V1 --- V2 --- V3
     end
 
-    subgraph PhaseB["Phase B: Meta-Synthesis & Gold Stacking (Antigravity + Gemini 2.5 Pro)"]
-        S1["External Super-Teacher Alignment"]
-        S2["TFM Bayesian Priors (TabPFN 3.5)"]
-        S3["RealMLP Neural Integration"]
+    subgraph Step3["3. Meta-Synthesis & Stacking (Gemini 2.5 Pro)"]
+        S1["Super-Teacher External Prior Alignment"]
+        S2["TabPFN 3.5 Bayesian In-Context Priors"]
+        S3["RealMLP Deep Tabular Neural Network"]
         S4["Unbounded Logit Meta-Learner (C=0.001)"]
-        S5["Dose-Response Peak Blending"]
-        Gate --> S1 --> S2 --> S3 --> S4 --> S5
+        S5["Dose-Response Spearman Peak Blending"]
+        S1 --> S2 --> S3 --> S4 --> S5
     end
 
-    subgraph Execution["Kaggle MCP Production Protocol"]
-        K1["kaggle.get_competition_leaderboard"]
-        K2["kaggle.start_competition_submission_upload"]
-        K3["tools/kaggle/upload_blob.py (GCS Stream)"]
-        K4["kaggle.submit_to_competition"]
-        K5["kaggle.search_competition_submissions"]
-        PhaseB --> Execution
+    subgraph Step4["4. Kaggle Production Protocol"]
+        K1["Automated Leaderboard Fetch"] --> K2["GCS Blob Stream Upload"] --> K3["Verified Final Submission"]
     end
+
+    Step1 --> Step2
+    Step2 --> Step3
+    Step3 --> Step4
+
+    class H1,H2,H3,H4 phaseA;
+    class V1,V2,V3 gate;
+    class S1,S2,S3,S4,S5 phaseB;
+    class K1,K2,K3 proto;
 ```
 
 ### 1. Phase A: Exploration & Ledger Screening

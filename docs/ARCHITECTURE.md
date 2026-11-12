@@ -9,44 +9,54 @@ The solution follows a strictly decoupled, leak-free, multi-tier modeling archit
 
 ```mermaid
 flowchart TD
+    %% Styling
+    classDef data fill:#f8fafc,stroke:#64748b,stroke-width:2px,color:#0f172a;
+    classDef feature fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
+    classDef model fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#0f172a;
+    classDef stack fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#0f172a;
+
     subgraph Data_Tier["1. Data Ingestion & Splitting Tier"]
-        RawTrain[train.csv - 699,635 rows] --> PolarsCast[Polars Schema Normalizer & Downcaster]
-        RawTest[test.csv - 299,844 rows] --> PolarsCast
-        PolarsCast --> Split[Stratified 5-Fold Generator seed=42]
-        Split --> ParquetCache[Parquet Columnar Cache]
+        RawTrain["train.csv (699k rows)"] --> PolarsCast["Polars Schema Downcasting & Ingestion"]
+        RawTest["test.csv (300k rows)"] --> PolarsCast
+        PolarsCast --> Split["Stratified 5-Fold Split (seed=42)"]
+        Split --> ParquetCache["Parquet Columnar Cache"]
     end
 
     subgraph Feature_Tier["2. Leak-Free Feature Engineering Tier"]
-        ParquetCache --> ZeroMask[Structural Zero Semantic Correction]
-        ParquetCache --> ExtTeacher[External Super Teacher Priors]
-        ParquetCache --> ProfileInteract[3-Way Profile Interaction Rates]
-        ParquetCache --> CorridorCluster[Route Corridor Frequency Encodings]
+        ParquetCache --> ZeroMask["Structural Zero Semantic Correction"]
+        ParquetCache --> ExtTeacher["External Super Teacher Priors"]
+        ParquetCache --> ProfileInteract["3-Way Customer Profile Interaction Rates"]
+        ParquetCache --> CorridorCluster["Route Corridor Frequency Encodings"]
         
-        ZeroMask --> GoldMatrix[Gold 84-Feature Matrix]
+        ZeroMask --> GoldMatrix["Gold 84-Feature Representation Matrix"]
         ExtTeacher --> GoldMatrix
         ProfileInteract --> GoldMatrix
         CorridorCluster --> GoldMatrix
     end
 
-    subgraph Model_Tier["3. Level-1 Multi-Family Ensembles"]
-        GoldMatrix --> M1[LightGBM GBDT<br>Histogram Binning]
-        GoldMatrix --> M2[CatBoost GBDT<br>Ordered Splits]
-        GoldMatrix --> M3[XGBoost GBDT<br>Exact Depth Regularized]
-        GoldMatrix --> M4[Tabular ResMLP<br>Quantile-Normal Marginals]
+    subgraph Model_Tier["3. Level-1 Multi-Family Diverse Models"]
+        GoldMatrix --> M1["LightGBM (Hist Binning)"]
+        GoldMatrix --> M2["CatBoost (Ordered Categoricals)"]
+        GoldMatrix --> M3["XGBoost (Exact Depth Regularized)"]
+        GoldMatrix --> M4["Tabular ResMLP (Quantile Normal Marginals)"]
         
-        M1 --> OOF[5-Fold Out-of-Fold Matrix]
+        M1 --> OOF["5-Fold Out-of-Fold Matrix"]
         M2 --> OOF
         M3 --> OOF
         M4 --> OOF
     end
 
     subgraph Stacking_Tier["4. Level-2 Meta-Stacker & Ensembling"]
-        OOF --> LogitMap[Logit-Odds Projection: z = ln p / 1-p]
-        LogitMap --> RidgeStacker[L2-Regularized Ridge Meta-Learner C=0.001]
-        RidgeStacker --> SLSQP[SLSQP Optimal Percentile Rank Blend]
-        SLSQP --> Submission[submission.csv]
-        SLSQP --> HTMLReport[reports/solution_preview.html]
+        OOF --> LogitMap["Logit-Odds Projection: z = ln(p / 1-p)"]
+        LogitMap --> RidgeStacker["L2 Ridge Meta-Learner (C=0.001)"]
+        RidgeStacker --> SLSQP["SLSQP Optimal Percentile Rank Blend"]
+        SLSQP --> Submission["Verified submission.csv"]
     end
+
+    class RawTrain,RawTest,PolarsCast,Split,ParquetCache data;
+    class ZeroMask,ExtTeacher,ProfileInteract,CorridorCluster,GoldMatrix feature;
+    class M1,M2,M3,M4,OOF model;
+    class LogitMap,RidgeStacker,SLSQP,Submission stack;
 ```
 
 ---
