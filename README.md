@@ -1,15 +1,16 @@
 # 🏆 Kaggle S6E10: Airline Passenger Satisfaction Champion Solution
 
+[![CI & Code Quality](https://github.com/VijaiKMathew/kaggle-s6e10-airline-satisfaction/actions/workflows/ci.yml/badge.svg)](https://github.com/VijaiKMathew/kaggle-s6e10-airline-satisfaction/actions/workflows/ci.yml)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live%20Showcase-38bdf8.svg?style=flat&logo=github)](https://vijaikmathew.github.io/kaggle-s6e10-airline-satisfaction/)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Package Manager: uv](https://img.shields.io/badge/managed%20by-uv-261230.svg?style=flat&logo=python)](https://github.com/astral-sh/uv)
-[![Interactive Report](https://img.shields.io/badge/Report-Live%20HTML%20Preview-38bdf8.svg?style=flat&logo=html5)](https://htmlpreview.github.io/?https://github.com/VijaiKMathew/kaggle-s6e10-airline-satisfaction/blob/main/reports/solution_preview.html)
 [![Kaggle Rank](https://img.shields.io/badge/Kaggle-Top%201%25%20Gold%20Medal-gold.svg)](https://www.kaggle.com/competitions/playground-series-s6e10)
 [![Evaluation Metric](https://img.shields.io/badge/ROC--AUC-0.96342-success.svg)](#)
 
 > Complete, leak-free, 1-command reproducible machine learning pipeline for the Kaggle Playground Series S6E10 competition, achieving **Top 1% (Gold Medal Tier)** out of 2,400+ international teams.
 >
-> 🌐 **[View Live Interactive Solution Preview](https://htmlpreview.github.io/?https://github.com/VijaiKMathew/kaggle-s6e10-airline-satisfaction/blob/main/reports/solution_preview.html)**
+> 🌐 **[View Live GitHub Pages Showcase](https://vijaikmathew.github.io/kaggle-s6e10-airline-satisfaction/)** | 📖 **[Read the Full Gold-Tier Writeup](WRITEUP.md)**
 
 ---
 
