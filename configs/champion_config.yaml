@@ -1,0 +1,39 @@
+# Champion Pipeline Configuration - Kaggle Playground Series S6E10
+# Airline Passenger Satisfaction (ROC AUC)
+
+competition:
+  slug: "playground-series-s6e10"
+  metric: "roc_auc"
+  target: "satisfaction"
+  n_folds: 5
+  seed: 42
+
+models:
+  lightgbm:
+    n_estimators: 2500
+    learning_rate: 0.03
+    num_leaves: 63
+    subsample: 0.8
+    colsample_bytree: 0.8
+    random_state: 42
+
+  catboost:
+    iterations: 2500
+    learning_rate: 0.03
+    depth: 6
+    eval_metric: "AUC"
+    random_seed: 42
+
+  xgboost:
+    n_estimators: 2500
+    learning_rate: 0.03
+    max_depth: 6
+    subsample: 0.8
+    colsample_bytree: 0.8
+    eval_metric: "auc"
+    random_state: 42
+
+stacker:
+  method: "logit_ridge"
+  regularization_C: 1.0
+  use_ranks: true

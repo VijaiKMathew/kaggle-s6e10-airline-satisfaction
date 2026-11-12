@@ -1,0 +1,52 @@
+# Virtual Environment & Package Managers
+.venv/
+venv/
+ENV/
+env/
+__pypackages__/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.ruff_cache/
+
+# Large Datasets & Raw Files (Strictly excluded)
+data/
+*.csv
+*.parquet
+*.feather
+*.h5
+*.npy
+*.sqlite
+*.db
+
+# Model checkpoints & heavy serialized weights
+*.pkl
+*.joblib
+*.pth
+*.pt
+*.bin
+*.onnx
+models/
+checkpoints/
+
+# Run logs & profilers
+wandb/
+catboost_info/
+lightning_logs/
+*.log
+*.out
+
+# Environment secrets
+.env
+.env.*
+*.pem
+*.key
+kaggle.json
+
+# OS specific
+.DS_Store
+Thumbs.db
