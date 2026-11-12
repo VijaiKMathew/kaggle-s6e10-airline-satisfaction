@@ -25,6 +25,17 @@ Predicting airline passenger satisfaction requires extracting subtle interaction
 
 ---
 
+## 📚 Deep-Dive Technical Documentation
+
+| Document | Focus & Key Insights |
+| :--- | :--- |
+| 📖 **[WRITEUP.md](WRITEUP.md)** | **Full Gold-Tier Solution Writeup:** GBDT saturation barrier, structural zero semantic discovery, logit meta-stacking mathematics, and private leaderboard dominance. |
+| 🏛️ **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | **Systems Architecture Specification:** Ingestion schemas, Polars memory downcasting, Level-1 diverse model topologies, Level-2 logit mechanics, and pre-flight verification gates. |
+| 🔬 **[docs/ABLATION_STUDY.md](docs/ABLATION_STUDY.md)** | **Ablation & Failure Modes:** Feature ablation waterfall, empirical proof of the *Feature Dilution Trap*, regularization sensitivity sweeps ($C$), and tombstoned negative results. |
+| 🌐 **[Live HTML Solution Preview](https://htmlpreview.github.io/?https://github.com/VijaiKMathew/kaggle-s6e10-airline-satisfaction/blob/main/reports/solution_preview.html)** | **Interactive Showcase:** Modern light-theme dashboard rendering metrics, architecture highlights, and ablation tables. |
+
+---
+
 ## 🏛️ System Architecture
 
 ```mermaid
