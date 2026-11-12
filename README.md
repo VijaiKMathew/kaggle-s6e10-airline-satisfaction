@@ -116,6 +116,6 @@ make all
 
 ## 👤 Author & Acknowledgments
 
-- **Author:** [Vijai KM](https://www.linkedin.com/) — Machine Learning Engineer
+- **Author:** [Vijai KM](https://www.linkedin.com/) — Senior Machine Learning Engineer
 - **Competition:** [Kaggle Playground Series S6E10](https://www.kaggle.com/competitions/playground-series-s6e10)
 - **License:** Released under the [MIT License](LICENSE).

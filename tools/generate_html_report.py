@@ -401,7 +401,7 @@ def build_html_report(title: str, competition: str, metric: str, score: str, ran
     </div>
 
     <footer>
-      <p>Crafted for Competitive Machine Learning Excellence | Author: <strong>Vijai KM</strong> | License: <strong>MIT</strong></p>
+      <p>Crafted for Competitive Machine Learning Excellence | Author: <strong>Vijai KM</strong> (Senior Machine Learning Engineer) | License: <strong>MIT</strong></p>
     </footer>
   </div>
 </body>

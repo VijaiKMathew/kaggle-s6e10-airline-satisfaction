@@ -196,3 +196,11 @@ make all
 ```
 
 *Total execution runtime: ~8 minutes on an Apple Silicon M-series 10-core CPU.*
+
+---
+
+## 7. Author & Acknowledgments
+
+- **Author:** [Vijai KM](https://www.linkedin.com/) — Senior Machine Learning Engineer
+- **Competition:** [Kaggle Playground Series S6E10](https://www.kaggle.com/competitions/playground-series-s6e10)
+- **License:** Released under the [MIT License](LICENSE).
