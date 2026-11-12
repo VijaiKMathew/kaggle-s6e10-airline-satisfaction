@@ -8,7 +8,7 @@
 **Current Champion:** `tri-stack-pillar1-s245-mega71` (OOF CV: **`0.962240`**, Public LB: **`0.96186`**)  
 **Peak Gold Summit Score:** **`0.96213`** (Rank 11 / Top 15 Gold Tier, Verified Kaggle Submissions `57579963` & `57580042`)  
 **Baseline vs. Gold Gain:** **$+389\text{u}$** ($+0.00389$ ROC AUC on Public Leaderboard)  
-**Environment & Hardware:** Apple Silicon M-series 10-core CPU, `uv`, Polars Parquet columnar caching, Kaggle MCP Protocol  
+**Environment & Hardware:** Modern Multi-Core CPU, `uv`, Polars Parquet columnar caching, Kaggle MCP Protocol  
 
 ---
 
@@ -67,7 +67,7 @@
 
 ## 1. Validation Architecture & Engineering Invariants
 
-To eliminate data leakage, ensure instantaneous iteration speeds, and guarantee full reproducibility across all 10 Apple Silicon CPU cores, we established strict repository-wide engineering constraints:
+To eliminate data leakage, ensure instantaneous iteration speeds, and guarantee full reproducibility across all CPU execution cores, we established strict repository-wide engineering constraints:
 
 ```mermaid
 flowchart TD
@@ -369,13 +369,13 @@ In competition science, documenting negative results is as critical as documenti
 ## 12. Complete Tech Stack, Tooling & Systems Profile
 
 ### Hardware & Platform
-- **Processor:** Apple Silicon M-series (10 hardware execution cores: high-performance + high-efficiency cores).
+- **Processor:** Modern Multi-Core Workstation CPU.
 - **Architecture:** `aarch64` / ARM64 with Unified Memory Architecture (UMA).
 - **Operating System:** macOS Darwin (zsh environment).
 - **Virtual Environment & Package Management:** `uv` (v0.4.x) running an isolated, self-contained Python 3.12 virtual environment (`.venv`), with lockfile enforcement for 100% reproducible builds.
 
 ### Machine Learning & Tabular Frameworks
-- **LightGBM (`lightgbm 4.6.0`):** Multi-threaded histogram splitting (`n_jobs=-1`, `tree_method="hist"`), accelerated via Homebrew OpenMP (`libomp`) on Apple Silicon.
+- **LightGBM (`lightgbm 4.6.0`):** Multi-threaded histogram splitting (`n_jobs=-1`, `tree_method="hist"`), accelerated via Homebrew OpenMP (`libomp`) on Multi-Core CPU.
 - **CatBoost (`catboost 1.2.27`):** Native categorical feature handling (`cat_features`), native handling of missing levels, and ordered target statistics.
 - **XGBoost (`xgboost 2.1.4`):** Histogram tree method (`tree_method="hist"`), experimental native categorical support (`enable_categorical=True`).
 - **TabPFN 3.5 (`tabpfn 9.0.0`):** Prior Labs' foundation transformer for tabular data, using in-context Bayesian inference across full-context training rows.
