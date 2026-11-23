@@ -7,7 +7,7 @@ SHELL := /bin/bash
 PYTHON := uv run python
 COMPETITION := playground-series-s6e10
 
-.PHONY: help setup data train report clean all lint
+.PHONY: help setup data train report clean all lint test
 
 help:
 	@echo "================================================================================"
@@ -17,6 +17,7 @@ help:
 	@echo "  make data      - Ingest competition dataset using the official Kaggle CLI"
 	@echo "  make train     - Run feature engineering, 5-fold CV and ensemble inference"
 	@echo "  make report    - Build standalone interactive HTML solution summary preview"
+	@echo "  make test      - Verify Python syntax across src and tools"
 	@echo "  make lint      - Check and format code with ruff"
 	@echo "  make clean     - Remove temporary caches, build artifacts, and logs"
 	@echo "  make all       - Run complete end-to-end pipeline (setup -> data -> train -> report)"
@@ -25,6 +26,11 @@ help:
 setup:
 	@echo "==> Setting up environment with uv..."
 	uv sync
+
+test:
+	@echo "==> Verifying Python syntax..."
+	python3 -m py_compile src/*.py tools/*.py
+	@echo "✓ Syntax validation passed."
 
 data:
 	@echo "==> Downloading competition data for $(COMPETITION) via Kaggle CLI..."
