@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- MANDATORY: Declare support for both light and dark themes -->
+  <meta name="color-scheme" content="light dark">
+  <title>Competitive ML System Architecture | Playground S6E10</title>
+  <style>
+    /* -------------------------------------------------------------------------
+       CSS DESIGN TOKENS & MODERN WEB GUIDANCE (light-dark() with fallbacks)
+       ------------------------------------------------------------------------- */
+    :root {
+      /* Fallback variables for older browser engines */
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #f1f5f9;
+      --bg-surface-hover: #e2e8f0;
+      --border-subtle: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #64748b;
+      --accent-primary: #2563eb;
+      --accent-primary-hover: #1d4ed8;
+      --accent-emerald: #059669;
+      --accent-purple: #7c3aed;
+      --accent-amber: #d97706;
+      --accent-rose: #e11d48;
+      --accent-cyan: #0891b2;
+      --code-bg: #f1f5f9;
+      --code-border: #cbd5e1;
+      --code-text: #0f172a;
+
+      /* Dark mode fallback overrides */
+      @media (prefers-color-scheme: dark) {
+        --bg-base: #0b0f19;
+        --bg-surface: #111827;
+        --bg-surface-elevated: #1f2937;
+        --bg-surface-hover: #374151;
+        --border-subtle: #1f2937;
+        --border-strong: #374151;
+        --text-main: #f9fafb;
+        --text-muted: #9ca3af;
+        --text-dim: #6b7280;
+        --accent-primary: #3b82f6;
+        --accent-primary-hover: #60a5fa;
+        --accent-emerald: #10b981;
+        --accent-purple: #a855f7;
+        --accent-amber: #f59e0b;
+        --accent-rose: #f43f5e;
+        --accent-cyan: #06b6d4;
+        --code-bg: #030712;
+        --code-border: #1f2937;
+        --code-text: #e2e8f0;
+      }
+
+      /* Modern light-dark() CSS color tokens */
+      @supports (color: light-dark(white, black)) {
+        --bg-base: light-dark(#f8fafc, #0b0f19);
+        --bg-surface: light-dark(#ffffff, #111827);
+        --bg-surface-elevated: light-dark(#f1f5f9, #1f2937);
+        --bg-surface-hover: light-dark(#e2e8f0, #374151);
+        --border-subtle: light-dark(#e2e8f0, #1f2937);
+        --border-strong: light-dark(#cbd5e1, #374151);
+        --text-main: light-dark(#0f172a, #f9fafb);
+        --text-muted: light-dark(#475569, #9ca3af);
+        --text-dim: light-dark(#64748b, #6b7280);
+        --accent-primary: light-dark(#2563eb, #3b82f6);
+        --accent-primary-hover: light-dark(#1d4ed8, #60a5fa);
+        --accent-emerald: light-dark(#059669, #10b981);
+        --accent-purple: light-dark(#7c3aed, #a855f7);
+        --accent-amber: light-dark(#d97706, #f59e0b);
+        --accent-rose: light-dark(#e11d48, #f43f5e);
+        --accent-cyan: light-dark(#0891b2, #06b6d4);
+        --code-bg: light-dark(#f1f5f9, #030712);
+        --code-border: light-dark(#cbd5e1, #1f2937);
+        --code-text: light-dark(#0f172a, #e2e8f0);
+      }
+
+      color-scheme: light dark;
+      accent-color: var(--accent-primary);
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+
+      /* Scrollbar tokens */
+      --scrollbar-track: light-dark(#f1f5f9, #111827);
+      --scrollbar-thumb: light-dark(#cbd5e1, #374151);
+      scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+      scrollbar-width: thin;
+    }
+
+    /* Manual theme overrides */
+    html[data-theme="light"] {
+      color-scheme: light;
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #f1f5f9;
+      --bg-surface-hover: #e2e8f0;
+      --border-subtle: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #64748b;
+      --accent-primary: #2563eb;
+      --code-bg: #f1f5f9;
+      --code-border: #cbd5e1;
+      --code-text: #0f172a;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-surface-elevated: #1f2937;
+      --bg-surface-hover: #374151;
+      --border-subtle: #1f2937;
+      --border-strong: #374151;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --accent-primary: #3b82f6;
+      --code-bg: #030712;
+      --code-border: #1f2937;
+      --code-text: #e2e8f0;
+    }
+
+    /* -------------------------------------------------------------------------
+       BASE RESET & LAYOUT
+       ------------------------------------------------------------------------- */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* -------------------------------------------------------------------------
+       SIDEBAR NAVIGATION
+       ------------------------------------------------------------------------- */
+    .sidebar {
+      width: 280px;
+      background-color: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 50;
+      scrollbar-width: thin;
+    }
+
+    .sidebar-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .badge-comp {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background-color: rgba(37, 99, 235, 0.1);
+      color: var(--accent-primary);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      margin-bottom: 8px;
+    }
+
+    .sidebar-title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-main);
+    }
+
+    .sidebar-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .sidebar-nav {
+      padding: 16px 12px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      padding: 8px 12px 4px 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item:hover {
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-main);
+    }
+
+    .nav-item.active {
+      background-color: rgba(37, 99, 235, 0.12);
+      color: var(--accent-primary);
+      font-weight: 600;
+    }
+
+    .nav-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--border-strong);
+      flex-shrink: 0;
+    }
+
+    .nav-item.active .nav-dot {
+      background-color: var(--accent-primary);
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background-color: var(--bg-surface);
+    }
+
+    .theme-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-strong);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      color: var(--text-main);
+      border-color: var(--accent-primary);
+    }
+
+    /* -------------------------------------------------------------------------
+       MAIN CONTENT CONTAINER
+       ------------------------------------------------------------------------- */
+    .main-wrapper {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-header {
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 18px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(8px);
+    }
+
+    .top-header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .header-pills {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pill {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      border: 1px solid transparent;
+    }
+
+    .pill-green {
+      background-color: rgba(16, 185, 129, 0.12);
+      color: var(--accent-emerald);
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+
+    .pill-blue {
+      background-color: rgba(59, 130, 246, 0.12);
+      color: var(--accent-primary);
+      border-color: rgba(59, 130, 246, 0.25);
+    }
+
+    .content-area {
+      padding: 36px 48px;
+      max-width: 1340px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    /* -------------------------------------------------------------------------
+       METRIC CARDS & STAT GRIDS
+       ------------------------------------------------------------------------- */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background-color: var(--card-color, var(--accent-primary));
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+    }
+
+    .stat-sub {
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    /* -------------------------------------------------------------------------
+       SECTIONS & CARDS
+       ------------------------------------------------------------------------- */
+    .arch-section {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      scroll-margin-top: 80px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .section-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .section-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-primary);
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    .section-desc {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      max-width: 880px;
+      margin-top: 4px;
+    }
+
+    /* -------------------------------------------------------------------------
+       MERMAID DIAGRAM CONTAINERS
+       ------------------------------------------------------------------------- */
+    .diagram-container {
+      background-color: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 24px;
+      margin: 20px 0;
+      overflow-x: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+      position: relative;
+    }
+
+    .diagram-toolbar {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .diagram-btn {
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 10px;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 5px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .diagram-btn:hover {
+      color: var(--text-main);
+      border-color: var(--accent-primary);
+    }
+
+    .mermaid {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .mermaid svg {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+
+    /* -------------------------------------------------------------------------
+       DATA TABLES & CALLOUT BOXES
+       ------------------------------------------------------------------------- */
+    .spec-table-wrap {
+      overflow-x: auto;
+      margin: 16px 0;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+    }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      text-align: left;
+    }
+
+    .spec-table th {
+      background-color: var(--bg-surface-elevated);
+      color: var(--text-dim);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .spec-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-main);
+    }
+
+    .spec-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .spec-table tr:hover td {
+      background-color: var(--bg-surface-elevated);
+    }
+
+    .callout {
+      padding: 16px 20px;
+      border-radius: 8px;
+      border-left: 4px solid;
+      margin: 18px 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .callout-info {
+      background-color: rgba(37, 99, 235, 0.08);
+      border-color: var(--accent-primary);
+      color: var(--text-main);
+    }
+
+    .callout-warning {
+      background-color: rgba(217, 119, 6, 0.08);
+      border-color: var(--accent-amber);
+      color: var(--text-main);
+    }
+
+    .callout-success {
+      background-color: rgba(5, 150, 105, 0.08);
+      border-color: var(--accent-emerald);
+      color: var(--text-main);
+    }
+
+    .callout-title {
+      font-weight: 700;
+      font-size: 13.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    /* -------------------------------------------------------------------------
+       CODE BLOCKS
+       ------------------------------------------------------------------------- */
+    pre, code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    code:not(pre code) {
+      background-color: var(--code-bg);
+      border: 1px solid var(--code-border);
+      color: var(--code-text);
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background-color: var(--code-bg);
+      border: 1px solid var(--code-border);
+      color: var(--code-text);
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 14px 0;
+      line-height: 1.5;
+    }
+
+    /* -------------------------------------------------------------------------
+       ACCORDIONS & COLLAPSIBLE MODULES
+       ------------------------------------------------------------------------- */
+    details.accordion {
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      background-color: var(--bg-surface);
+      margin: 12px 0;
+      overflow: hidden;
+      transition: border-color 0.15s ease;
+    }
+
+    details.accordion[open] {
+      border-color: var(--border-strong);
+    }
+
+    details.accordion summary {
+      padding: 14px 18px;
+      font-weight: 600;
+      font-size: 14.5px;
+      color: var(--text-main);
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--bg-surface-elevated);
+      list-style: none;
+    }
+
+    details.accordion summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.accordion summary::after {
+      content: "›";
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dim);
+      transition: transform 0.2s ease;
+    }
+
+    details.accordion[open] summary::after {
+      transform: rotate(90deg);
+    }
+
+    .accordion-content {
+      padding: 18px 20px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* -------------------------------------------------------------------------
+       GRID CARDS FOR MULTI-PARADIGM ZOO
+       ------------------------------------------------------------------------- */
+    .model-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+      margin-top: 16px;
+    }
+
+    .model-card {
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 20px;
+      background-color: var(--bg-surface-elevated);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .model-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .model-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .model-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .badge-gbdt { background: rgba(37,99,235,0.15); color: var(--accent-primary); }
+    .badge-neural { background: rgba(124,58,237,0.15); color: var(--accent-purple); }
+    .badge-linear { background: rgba(5,150,105,0.15); color: var(--accent-emerald); }
+    .badge-llm { background: rgba(225,29,72,0.15); color: var(--accent-rose); }
+
+    .model-card-body {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .model-params-table {
+      width: 100%;
+      font-size: 12px;
+      margin-top: 6px;
+      border-collapse: collapse;
+    }
+
+    .model-params-table td {
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--border-subtle);
+    }
+
+    .model-params-table td:last-child {
+      text-align: right;
+      font-family: var(--font-mono);
+      color: var(--text-main);
+    }
+
+    /* -------------------------------------------------------------------------
+       TEMPLATE / ADD DETAILS SECTION
+       ------------------------------------------------------------------------- */
+    .template-box {
+      border: 2px dashed var(--border-strong);
+      border-radius: 10px;
+      padding: 24px;
+      text-align: center;
+      background-color: var(--bg-surface-elevated);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .template-box p {
+      font-size: 13.5px;
+      color: var(--text-dim);
+      max-width: 500px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border-subtle); }
+      .content-area { padding: 24px; }
+      .top-header { padding: 16px 24px; }
+    }
+  </style>
+
+  <!-- Load Mermaid ESM CDN -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+    function isDarkMode() {
+      const explicit = document.documentElement.getAttribute('data-theme');
+      if (explicit === 'dark') return true;
+      if (explicit === 'light') return false;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    function initMermaid() {
+      const dark = isDarkMode();
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: dark ? 'dark' : 'default',
+        securityLevel: 'loose',
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+          curve: 'basis'
+        },
+        themeVariables: {
+          primaryColor: dark ? '#1e293b' : '#eff6ff',
+          primaryTextColor: dark ? '#f8fafc' : '#0f172a',
+          primaryBorderColor: dark ? '#3b82f6' : '#2563eb',
+          lineColor: dark ? '#60a5fa' : '#3b82f6',
+          secondaryColor: dark ? '#1f2937' : '#f1f5f9',
+          tertiaryColor: dark ? '#111827' : '#ffffff'
+        }
+      });
+    }
+
+    initMermaid();
+
+    // Re-render when theme changes
+    window.addEventListener('themeChanged', () => {
+      location.reload();
+    });
+  </script>
+</head>
+<body>
+
+  <!-- =========================================================================
+       SIDEBAR NAVIGATION
+       ========================================================================= -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="badge-comp">Playground S6E10</div>
+      <h1 class="sidebar-title">ML Architecture</h1>
+      <p class="sidebar-subtitle">Fraud Detection System Blueprint</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label">System Architecture</div>
+      <a href="#overview" class="nav-item active"><span class="nav-dot"></span>Overview & KPIs</a>
+      <a href="#hld" class="nav-item"><span class="nav-dot"></span>High-Level Design (HLD)</a>
+      <a href="#lld" class="nav-item"><span class="nav-dot"></span>Low-Level Design (LLD)</a>
+      <a href="#pipeline" class="nav-item"><span class="nav-dot"></span>Pipeline Flow (8 Stages)</a>
+
+      <div class="nav-label">Engineering Discipline</div>
+      <a href="#leakage-prevention" class="nav-item"><span class="nav-dot"></span>Zero-Leakage Protocol</a>
+      <a href="#model-zoo" class="nav-item"><span class="nav-dot"></span>Multi-Paradigm Zoo</a>
+      <a href="#ensembling" class="nav-item"><span class="nav-dot"></span>Stacking & Rank Calibration</a>
+      <a href="#quality-gates" class="nav-item"><span class="nav-dot"></span>CI/CD & MCP Gates</a>
+
+      <div class="nav-label">Extensibility</div>
+      <a href="#custom-sections" class="nav-item"><span class="nav-dot"></span>Add Custom Sections</a>
+      <a href="#repository-map" class="nav-item"><span class="nav-dot"></span>Directory Topology</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span style="font-size: 11.5px; color: var(--text-dim);">Theme Mode</span>
+      <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle light and dark theme">
+        <span id="themeLabel">System</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       MAIN WRAPPER
+       ========================================================================= -->
+  <div class="main-wrapper">
+    <header class="top-header">
+      <div class="top-header-left">
+        <div class="page-title">Airline Passenger Satisfaction — System Architecture</div>
+      </div>
+      <div class="header-pills">
+        <span class="pill pill-green">Champion CV: 0.96224</span>
+        <span class="pill pill-blue">Public LB: 0.96213 (Top 10)</span>
+      </div>
+    </header>
+
+    <main class="content-area">
+
+      <!-- =====================================================================
+           SECTION 1: OVERVIEW & SYSTEM METRICS
+           ===================================================================== -->
+      <section id="overview" class="arch-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <span class="section-tag">Architecture Blueprint</span>
+            <h2 class="section-title">Production Metric Ledger & System Constraints</h2>
+            <p class="section-desc">
+              High-throughput tabular ML system architected for Kaggle Playground Series (S6E11).
+              Optimized for ROC AUC under extreme class imbalance (43.3% positive satisfaction rate).
+            </p>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card" style="--card-color: var(--accent-emerald);">
+            <span class="stat-label">Champion OOF CV</span>
+            <span class="stat-value">0.96224</span>
+            <span class="stat-sub">Nested 5-Fold Stratified ROC AUC</span>
+          </div>
+          <div class="stat-card" style="--card-color: var(--accent-primary);">
+            <span class="stat-label">Public Leaderboard</span>
+            <span class="stat-value">0.96213</span>
+            <span class="stat-sub">Submission #57580042 (Rank 11 / Top 15 Gold)</span>
+          </div>
+          <div class="stat-card" style="--card-color: var(--accent-purple);">
+            <span class="stat-label">CV / LB Alignment</span>
+            <span class="stat-value">&plusmn;0.00046</span>
+            <span class="stat-sub">Zero leakage delta ($&Delta; \le 0.0015$)</span>
+          </div>
+          <div class="stat-card" style="--card-color: var(--accent-amber);">
+            <span class="stat-label">Model Ensemble Zoo</span>
+            <span class="stat-value">201 Models</span>
+            <span class="stat-sub">Multi-Paradigm Wide Stack</span>
+          </div>
+        </div>
+
+        <div class="spec-table-wrap" style="margin-top: 24px;">
+          <table class="spec-table">
+            <thead>
+              <tr>
+                <th>Constraint / Dimension</th>
+                <th>Specification</th>
+                <th>Engineering Justification</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Evaluation Metric</strong></td>
+                <td><code>ROC AUC</code></td>
+                <td>Scale-invariant and threshold-free; strictly requires monotonic rank-ordering over raw calibration.</td>
+              </tr>
+              <tr>
+                <td><strong>Training Volume</strong></td>
+                <td>699,635 rows &times; 22 columns</td>
+                <td>Serialized to Snappy Parquet (48.2 MB) to cut load latency from 2.8s CSV to 240ms Parquet.</td>
+              </tr>
+              <tr>
+                <td><strong>Test Volume</strong></td>
+                <td>299,844 rows &times; 21 columns</td>
+                <td>Evaluated using out-of-fold bag averaging across 5 stratified models per paradigm.</td>
+              </tr>
+              <tr>
+                <td><strong>Target Imbalance</strong></td>
+                <td>302,942 Satisfied / 396,693 Neutral-Dissatisfied (43.3%)</td>
+                <td>Requires StratifiedKFold, focal / residual shallow boosting, and Bayesian prior smoothing.</td>
+              </tr>
+              <tr>
+                <td><strong>Submission Bound</strong></td>
+                <td>Max 10 / day; Team size 3</td>
+                <td>Mandates pre-flight verification gate (<code>check_submission.py</code>) prior to upload.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 2: HIGH-LEVEL DESIGN (HLD)
+           ===================================================================== -->
+      <section id="hld" class="arch-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <span class="section-tag">System Topology</span>
+            <h2 class="section-title">High-Level Design (HLD)</h2>
+            <p class="section-desc">
+              End-to-end decoupled system context diagram illustrating data lake ingestion, stratified validation engine,
+              feature extraction, multi-paradigm training zoo, meta-stacking, and Kaggle MCP dispatch.
+            </p>
+          </div>
+        </div>
+
+        <div class="diagram-container">
+          <div class="mermaid">
+flowchart TB
+    subgraph KAGGLE_CLOUD["External: Kaggle Infrastructure"]
+        SRC[("Kaggle Data Stream<br/>train.csv (699.9k)<br/>test.csv (300.0k)")]
+        K_UPLOAD["Kaggle Blob Storage<br/>(Signed PUT API)"]
+        K_LB["Live Leaderboard<br/>(ROC AUC Evaluator)"]
+    end
+
+    subgraph INGEST["1. Ingestion & Storage Lake"]
+        PARQUET[("Parquet Data Lake<br/>data/processed/*.parquet<br/>Snappy Compressed")]
+        CONF["Configs & Metadata<br/>configs/competition.json"]
+    end
+
+    subgraph VALIDATION["2. Stratification Engine"]
+        SPLIT["Stratified 5-Fold Splitter<br/>random_state=42<br/>Fixed Class Ratio: 1.67%"]
+    end
+
+    subgraph FEATURES["3. Multi-Paradigm Feature Store"]
+        RATIOS["Velocity & Financial Ratios<br/>Balance Exhaustion Indicators"]
+        DIGITS["Exact Digit Tokenizer<br/>Cents, Decimals, Leading Digits"]
+        NESTED_TE["Nested Bayesian Target Encoder<br/>Inner 5-Fold Isolation (s=20.0)"]
+    end
+
+    subgraph MODELS["4. Multi-Paradigm Model Zoo"]
+        M_LGB["LightGBM Residual<br/>Shallow Leaves (depth 4)"]
+        M_XGB["XGBoost DART<br/>Colsample 0.5, eta 0.02"]
+        M_CAT["CatBoost Classifier<br/>Ordered Categorical Binning"]
+        M_GLM["Newton-Cholesky<br/>Additive GLM Margins"]
+        M_LLM["GPT-2 Tabular<br/>Target-First Language Model"]
+        M_EBM["Explainable Boosting<br/>(GAMs + Spline Pairs)"]
+    end
+
+    subgraph ENSEMBLE["5. Meta-Stacking & Rank Calibration"]
+        OOF_REG[("OOF Prediction Matrix<br/>699,960 x M Paradigms")]
+        RANK_SCALER["Monotonic Rank Scaler<br/>r = rank(x) / N"]
+        STACKER["Nelder-Mead / Ridge Meta-Learner<br/>Part 12 Blending: 0.70 Wide LM + 0.30 Part 9"]
+    end
+
+    subgraph GATES["6. Guarded Operations & Provenance"]
+        PRECHECK["Verification Gates<br/>check_submission.py<br/>check_champion.py<br/>check_secrets.py"]
+        CHAMP_LEDGER["Cryptographic Champion Registry<br/>CHAMPION.json (SHA256)"]
+        MCP_RUNNER["Kaggle MCP Uploader<br/>tools/kaggle/upload_blob.py"]
+    end
+
+    SRC --> INGEST
+    CONF --> VALIDATION
+    INGEST --> VALIDATION
+    VALIDATION --> FEATURES
+    FEATURES --> MODELS
+    MODELS --> ENSEMBLE
+    ENSEMBLE --> GATES
+    GATES -->|Streamed Blob| K_UPLOAD
+    K_UPLOAD --> K_LB
+    K_LB -.->|Official Score| CHAMP_LEDGER
+
+    classDef kaggle fill:#1e293b,stroke:#475569,stroke-width:2px,color:#94a3b8;
+    classDef storage fill:#0f766e,stroke:#14b8a6,stroke-width:2px,color:#f0fdfa;
+    classDef engine fill:#1d4ed8,stroke:#3b82f6,stroke-width:2px,color:#eff6ff;
+    classDef zoo fill:#6b21a8,stroke:#a855f7,stroke-width:2px,color:#faf5ff;
+    classDef ops fill:#b45309,stroke:#f59e0b,stroke-width:2px,color:#fffbeb;
+
+    class SRC,K_UPLOAD,K_LB kaggle;
+    class PARQUET,OOF_REG storage;
+    class SPLIT,FEATURES engine;
+    class M_LGB,M_XGB,M_CAT,M_GLM,M_LLM,M_EBM zoo;
+    class PRECHECK,CHAMP_LEDGER,MCP_RUNNER ops;
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 3: LOW-LEVEL DESIGN (LLD)
+           ===================================================================== -->
+      <section id="lld" class="arch-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <span class="section-tag">Software Engineering</span>
+            <h2 class="section-title">Low-Level Design (LLD) & Component Interfaces</h2>
+            <p class="section-desc">
+              Detailed object contracts, class responsibilities, and architectural interfaces across the 
+              <code>qaggle</code> core framework and model runner scripts.
+            </p>
+          </div>
+        </div>
+
+        <div class="diagram-container">
+          <div class="mermaid">
+classDiagram
+    class RepoManager {
+        +repo_root() Path
+        +train_parquet_path() Path
+        +test_parquet_path() Path
+        +artifacts_path() Path
+    }
+
+    class ValidationScheme {
+        +n_splits: int = 5
+        +target_col: str = "is_fraud"
+        +seed: int = 42
+        +split(df: DataFrame) Generator
+        +verify_stratification(df: DataFrame) bool
+    }
+
+    class FeaturePipeline {
+        +CATEGORICAL_COLS: list[str]
+        +BOOLEAN_COLS: list[str]
+        +NUMERIC_COLS: list[str]
+        +engineer_features(df: DataFrame) DataFrame
+        +extract_digit_keys(df: DataFrame) DataFrame
+        +compute_velocity_interactions(df: DataFrame) DataFrame
+    }
+
+    class TargetEncoderNested {
+        +smoothing: float = 20.0
+        +inner_folds: int = 5
+        +fit_transform_oof(train_df: DataFrame, val_df: DataFrame) tuple
+        +transform_test(test_df: DataFrame) DataFrame
+    }
+
+    class AdditiveGLM {
+        +solver: str = "newton-cholesky"
+        +C: float = 0.3
+        +fit_margins(X: ndarray, y: ndarray) ndarray
+        +predict_margins(X: ndarray) ndarray
+    }
+
+    class ResidualGBDT {
+        +num_leaves: int = 4
+        +learning_rate: float = 0.03
+        +fit_on_residual(X: ndarray, y: ndarray, init_score: ndarray) Booster
+        +predict_proba(X: ndarray, init_score: ndarray) ndarray
+    }
+
+    class StackerEngine {
+        +oof_registry: dict[str, ndarray]
+        +test_registry: dict[str, ndarray]
+        +rank_transform(arr: ndarray) ndarray
+        +optimize_weights_nelder_mead(y_true: ndarray) ndarray
+        +blend(weights: list[float]) tuple
+    }
+
+    class QualityGate {
+        +validate_submission_file(path: Path) list[str]
+        +validate_champion_ledger(path: Path) list[str]
+        +validate_secrets() list[str]
+    }
+
+    ValidationScheme ..> RepoManager : queries paths
+    FeaturePipeline --> TargetEncoderNested : supplies raw joints
+    TargetEncoderNested --> AdditiveGLM : standardized logit input
+    AdditiveGLM --> ResidualGBDT : injects init_score margin
+    ResidualGBDT ..> StackerEngine : emits OOF & test vectors
+    StackerEngine --> QualityGate : triggers pre-flight gatekeeper
+          </div>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-title">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Design Pattern: Residual Boosting with Margin Injection
+          </div>
+          The <code>AdditiveGLM</code> computes global linear margins using high-signal nested target encodings solved via the exact <code>newton-cholesky</code> algorithm. The <code>ResidualGBDT</code> then takes these linear margins as an <code>init_score</code> offset. This restricts the tree booster to learning exclusively non-linear residual interactions, preventing tree depth explosion and memorization of sparse fraud anomalies.
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 4: PIPELINE ARCHITECTURE (8 STAGES)
+           ===================================================================== -->
+      <section id="pipeline" class="arch-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <span class="section-tag">Execution Workflow</span>
+            <h2 class="section-title">End-to-End Pipeline Architecture (8 Stages)</h2>
+            <p class="section-desc">
+              Deterministic sequence from raw CSV streaming to leaderboard verification. No stage executes until the prior stage clears all invariant checks.
+            </p>
+          </div>
+        </div>
+
+        <div class="diagram-container">
+          <div class="mermaid">
+flowchart TD
+    subgraph S1["Stage 1: Ingestion & Parquet Serialization"]
+        A1["Fetch raw train.csv & test.csv<br/>(kaggle.download_competition_data_files)"] --> A2["Enforce strict schema types & serialize to Parquet<br/>(src/make_folds.py)"]
+    end
+
+    subgraph S2["Stage 2: Deterministic Partitioning"]
+        A2 --> B1["StratifiedKFold(n_splits=5, shuffle=True, seed=42)"]
+        B1 --> B2["Imprint static fold column into train.parquet<br/>Assert 0% class drift across all folds"]
+    end
+
+    subgraph S3["Stage 3: Feature Extraction & Nested TE"]
+        B2 --> C1["Domain Features Engine (src/features.py)<br/>Ratios, velocity, geographical mobility"]
+        C1 --> C2["Digit Tokenizer & Interaction Screener<br/>Cents, dec length, G-test screened pairs"]
+        C2 --> C3["Nested Target Encoding (Bayesian Prior, s=20.0)<br/>Inner 5-fold isolation for train, frozen for val"]
+    end
+
+    subgraph S4["Stage 4: Multi-Paradigm Zoo Training"]
+        C3 --> D1["Additive GLM Risk Engine<br/>Newton-Cholesky Solver on Logit TEs"]
+        D1 --> D2["Residual Shallow LightGBM<br/>init_score = GLM margin, num_leaves=4"]
+        C3 --> D3["Deep Tabular Neural Models<br/>RealMLP + TabNet"]
+        C3 --> D4["Target-First Language Models<br/>GPT-2 Tabular Tokenizer"]
+    end
+
+    subgraph S5["Stage 5: OOF Matrix Assembly"]
+        D2 --> E1["Assemble Out-Of-Fold Matrix (699,960 x M)"]
+        D3 --> E1
+        D4 --> E1
+        E1 --> E2["Generate Fold-Averaged Test Predictions"]
+    end
+
+    subgraph S6["Stage 6: Metric-Aligned Rank Ensembling"]
+        E2 --> F1["Rank Transformation: r_i = rank(x_i) / N"]
+        F1 --> F2["Weighted Blending: 0.70 * r_wlm + 0.30 * r_part9"]
+        F2 --> F3["Evaluate Blended CV ROC AUC<br/>(Assert CV > 0.96224)"]
+    end
+
+    subgraph S7["Stage 7: Pre-Flight Verification Gates"]
+        F3 --> G1["check_submission.py<br/>Shape: (299984, 2) | Nulls: 0 | Bounds: [0, 1]"]
+        G1 --> G2["check_champion.py<br/>Monotonic CV verification vs CHAMPION.json"]
+        G2 --> G3["check_secrets.py<br/>Zero leaked tokens or credentials"]
+    end
+
+    subgraph S8["Stage 8: Kaggle MCP Dispatch"]
+        G3 --> H1["kaggle.start_competition_submission_upload<br/>Fetch signed blob URL"]
+        H1 --> H2["tools/kaggle/upload_blob.py<br/>Stream submission payload"]
+        H2 --> H3["kaggle.submit_to_competition<br/>Finalize submission ref"]
+        H3 --> H4["Query leaderboard feedback & update CHAMPION.json"]
+    end
+
+    style S1 fill:#0f172a,stroke:#38bdf8,stroke-width:1px,color:#f8fafc
+    style S2 fill:#0f172a,stroke:#818cf8,stroke-width:1px,color:#f8fafc
+    style S3 fill:#0f172a,stroke:#a855f7,stroke-width:1px,color:#f8fafc
+    style S4 fill:#0f172a,stroke:#ec4899,stroke-width:1px,color:#f8fafc
+    style S5 fill:#0f172a,stroke:#f59e0b,stroke-width:1px,color:#f8fafc
+    style S6 fill:#0f172a,stroke:#10b981,stroke-width:1px,color:#f8fafc
+    style S7 fill:#0f172a,stroke:#ef4444,stroke-width:1px,color:#f8fafc
+    style S8 fill:#0f172a,stroke:#06b6d4,stroke-width:1px,color:#f8fafc
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 5: ZERO-LEAKAGE PROTOCOL
+           ===================================================================== -->
+      <section id="leakage-prevention" class="arch-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <span class="section-tag">Validation Rigor</span>
+            <h2 class="section-title">Zero-Leakage Architecture & Nested CV Protocol</h2>
+            <p class="section-desc">
+              Cross-validation sequence demonstrating rigorous statistical isolation between training folds,
+              validation folds, and the unlabelled test set.
+            </p>
+          </div>
+        </div>
+
+        <div class="diagram-container">
+          <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant D as Parquet Data Lake
+    participant CV as StratifiedKFold Engine
+    participant TF as Train Fold (80% / 559.9k)
+    participant VF as Val Fold (20% / 140.0k)
+    participant TE as Nested Target Encoder
+    participant M as Model Estimator
+    participant OOF as OOF Global Matrix
+
+    D->>CV: Ingest train.parquet (699,960 rows)
+    Note over CV: Iterating Fold k in {0..4}
+    CV->>TF: Isolate Train Partition (fold != k)
+    CV->>VF: Isolate Validation Partition (fold == k)
+
+    rect rgb(30, 41, 59)
+        Note over TF,TE: Nested Cross-Validation (Leakage Wall)
+        TF->>TE: Inner 5-Fold Split on Train Partition Only
+        TE-->>TF: Calculate smoothed priors: (sum_y + 20*prior) / (count + 20)
+        TE->>VF: Map frozen train priors onto Val Partition
+    end
+
+    rect rgb(15, 23, 42)
+        Note over TF,M: Estimator Training
+        TF->>M: Fit GLM Margin + Residual LGBM
+        M->>VF: Generate In-Fold Val Predictions
+        VF->>OOF: Store OOF Vector for Fold k
+    end
+
+    Note over OOF: Concatenate 5 Folds -> Verified CV ROC AUC = 0.96224
+          </div>
+        </div>
+
+        <div class="callout callout-warning">
+          <div class="callout-title">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            Leakage Containment Rule
+          </div>
+          Global operations (such as computing target encodings, global mean imputation, value counts, or standard scaling across all 699,960 rows prior to splitting) cause fatal out-of-fold information leakage. In this architecture, all transformer states are computed strictly on <code>train_fold</code> and projected onto <code>val_fold</code>.
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 6: MULTI-PARADIGM MODEL ZOO
+           ===================================================================== -->
+      <section id="model-zoo" class="arch-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <span class="section-tag">Model Architecture</span>
+            <h2 class="section-title">Multi-Paradigm Model Zoo</h2>
+            <p class="section-desc">
+              Orthogonal algorithmic paradigms ensuring diverse error surfaces and optimal ensembling leverage.
+            </p>
+          </div>
+        </div>
+
+        <div class="model-cards-grid">
+          <!-- Model Card 1 -->
+          <div class="model-card">
+            <div class="model-card-header">
+              <span class="model-name">Residual Shallow LightGBM</span>
+              <span class="model-badge badge-gbdt">GBDT</span>
+            </div>
+            <div class="model-card-body">
+              Fits exclusively on residual errors from the Additive GLM. Shallow trees prevent memorization of noise in low-density feature subspaces.
+            </div>
+            <table class="model-params-table">
+              <tr><td><code>num_leaves</code></td><td>4</td></tr>
+              <tr><td><code>learning_rate</code></td><td>0.03</td></tr>
+              <tr><td><code>colsample_bytree</code></td><td>0.50</td></tr>
+              <tr><td><code>subsample</code></td><td>0.80</td></tr>
+              <tr><td><code>min_child_samples</code></td><td>100</td></tr>
+            </table>
+          </div>
+
+          <!-- Model Card 2 -->
+          <div class="model-card">
+            <div class="model-card-header">
+              <span class="model-name">Newton-Cholesky GLM</span>
+              <span class="model-badge badge-linear">Linear / GLM</span>
+            </div>
+            <div class="model-card-body">
+              High-speed logistic regression trained over standardized logit-transformed nested target encodings. Produces stable base margins.
+            </div>
+            <table class="model-params-table">
+              <tr><td><code>solver</code></td><td>newton-cholesky</td></tr>
+              <tr><td><code>C (regularization)</code></td><td>0.30</td></tr>
+              <tr><td><code>max_iter</code></td><td>200</td></tr>
+              <tr><td><code>tol</code></td><td>1e-7</td></tr>
+            </table>
+          </div>
+
+          <!-- Model Card 3 -->
+          <div class="model-card">
+            <div class="model-card-header">
+              <span class="model-name">Target-First GPT-2 LM</span>
+              <span class="model-badge badge-llm">Language Model</span>
+            </div>
+            <div class="model-card-body">
+              Tokenizes continuous and categorical transactions as serialized sequences. Predicts target token probability with causal attention masks.
+            </div>
+            <table class="model-params-table">
+              <tr><td><code>architecture</code></td><td>GPT-2 (Tabular Formatted)</td></tr>
+              <tr><td><code>sequence_len</code></td><td>64 tokens</td></tr>
+              <tr><td><code>embed_dim</code></td><td>256</td></tr>
+              <tr><td><code>heads / layers</code></td><td>8 heads / 6 layers</td></tr>
+            </table>
+          </div>
+
+          <!-- Model Card 4 -->
+          <div class="model-card">
+            <div class="model-card-header">
+              <span class="model-name">CatBoost Categorical</span>
+              <span class="model-badge badge-gbdt">GBDT</span>
+            </div>
+            <div class="model-card-body">
+              Symmetric oblivious decision trees utilizing online permutation-based target encoding for multi-category merchant features.
+            </div>
+            <table class="model-params-table">
+              <tr><td><code>depth</code></td><td>6</td></tr>
+              <tr><td><code>learning_rate</code></td><td>0.04</td></tr>
+              <tr><td><code>l2_leaf_reg</code></td><td>5.0</td></tr>
+              <tr><td><code>iterations</code></td><td>1500</td></tr>
+            </table>
+          </div>
+
+          <!-- Model Card 5 -->
+          <div class="model-card">
+            <div class="model-card-header">
+              <span class="model-name">RealMLP Tabular</span>
+              <span class="model-badge badge-neural">Neural</span>
+            </div>
+            <div class="model-card-body">
+              Residual MLP with LayerNorm and mish activations specifically regularized for numerical and high-cardinality tabular datasets.
+            </div>
+            <table class="model-params-table">
+              <tr><td><code>hidden_dims</code></td><td>[256, 128, 64]</td></tr>
+              <tr><td><code>dropout</code></td><td>0.15</td></tr>
+              <tr><td><code>weight_decay</code></td><td>1e-4</td></tr>
+            </table>
+          </div>
+
+          <!-- Model Card 6 -->
+          <div class="model-card">
+            <div class="model-card-header">
+              <span class="model-name">Explainable Boosting (EBM)</span>
+              <span class="model-badge badge-linear">GAM / Splines</span>
+            </div>
+            <div class="model-card-body">
+              Generalized Additive Models with pairwise interaction terms. Guarantees monotonicity for monotonic risk features.
+            </div>
+            <table class="model-params-table">
+              <tr><td><code>interactions</code></td><td>64 top pairs</td></tr>
+              <tr><td><code>learning_rate</code></td><td>0.01</td></tr>
+              <tr><td><code>outer_bags</code></td><td>8</td></tr>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 7: STACKING & RANK CALIBRATION
+           ===================================================================== -->
+      <section id="ensembling" class="arch-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <span class="section-tag">Meta-Modeling</span>
+            <h2 class="section-title">Multi-Level Stacking & Rank Calibration</h2>
+            <p class="section-desc">
+              Metric-aligned ensembling using monotonic rank scaling: $r_i = \text{rank}(x_i) / N$.
+              Overcomes calibration mismatches between neural models, tree ensembles, and GLMs.
+            </p>
+          </div>
+        </div>
+
+        <div class="diagram-container">
+          <div class="mermaid">
+flowchart TD
+    subgraph LEVEL_0["Level-0 Model Predictions"]
+        M1["Residual LGBM<br/>(OOF + Test)"]
+        M2["CatBoost<br/>(OOF + Test)"]
+        M3["Newton GLM<br/>(OOF + Test)"]
+        M4["RealMLP<br/>(OOF + Test)"]
+        M5["GPT-2 Tabular<br/>(OOF + Test)"]
+    end
+
+    subgraph LEVEL_1["Level-1 Rank Scaling & Calibration"]
+        R1["rank(M1) / N"]
+        R2["rank(M2) / N"]
+        R3["rank(M3) / N"]
+        R4["rank(M4) / N"]
+        R5["rank(M5) / N"]
+    end
+
+    subgraph LEVEL_2["Level-2 Meta-Ensemble Streams"]
+        WLM["Wide LM Stack Ensemble<br/>(201 Models Combined)"]
+        PART9["Part 9 Gradient Boosted Ensemble<br/>(High-Diversity Trees)"]
+    end
+
+    subgraph FINAL["Final Level-3 Production Champion"]
+        FORMULA["Production Blending Formula:<br/>0.70 * rank(WLM) + 0.30 * rank(Part9)"]
+        OUT["Final Submission: submission.csv<br/>ROC AUC CV: 0.96224 | LB: 0.96213"]
+    end
+
+    M1 --> R1
+    M2 --> R2
+    M3 --> R3
+    M4 --> R4
+    M5 --> R5
+
+    R1 & R2 & R3 & R4 & R5 --> WLM
+    R1 & R2 & R3 --> PART9
+
+    WLM --> FORMULA
+    PART9 --> FORMULA
+    FORMULA --> OUT
+
+    classDef l0 fill:#1e1b4b,stroke:#6366f1,stroke-width:1.5px,color:#e0e7ff;
+    classDef l1 fill:#064e3b,stroke:#10b981,stroke-width:1.5px,color:#ecfdf5;
+    classDef l2 fill:#701a75,stroke:#d946ef,stroke-width:1.5px,color:#fdf4ff;
+    classDef f fill:#451a03,stroke:#f59e0b,stroke-width:2px,color:#fffbeb;
+
+    class M1,M2,M3,M4,M5 l0;
+    class R1,R2,R3,R4,R5 l1;
+    class WLM,PART9 l2;
+    class FORMULA,OUT f;
+          </div>
+        </div>
+
+        <div class="callout callout-success">
+          <div class="callout-title">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Why Rank Normalization Dominates Probability Averaging
+          </div>
+          Under ROC AUC, the metric depends exclusively on the pairwise ordering of pairs $(y_i = 1, y_j = 0)$. Arithmetic averaging $\frac{1}{M}\sum p_m$ is corrupted if one model outputs uncalibrated extreme probabilities (e.g., $0.9999$). Rank averaging guarantees that every model has an identical uniform marginal distribution $U(0, 1)$, preventing calibration distortion from destroying ensembling gains.
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 8: QUALITY GATES & CI/CD VERIFICATION
+           ===================================================================== -->
+      <section id="quality-gates" class="arch-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <span class="section-tag">Governance & Safety</span>
+            <h2 class="section-title">Automated Quality Gates & Kaggle MCP Dispatch</h2>
+            <p class="section-desc">
+              State machine illustrating automated validation gates enforcing zero failed submissions, 
+              cryptographic champion tracking, and credential security.
+            </p>
+          </div>
+        </div>
+
+        <div class="diagram-container">
+          <div class="mermaid">
+stateDiagram-v2
+    [*] --> GeneratedSubmission: make_sota_submission.py
+    GeneratedSubmission --> CheckFormat: check_submission.py
+
+    state CheckFormat {
+        [*] --> ValidateFileExists
+        ValidateFileExists --> CheckRowColumnShape
+        CheckRowColumnShape --> CheckNullValues
+        CheckNullValues --> CheckProbabilityBounds
+        CheckProbabilityBounds --> CheckIdMonotonicity
+        CheckIdMonotonicity --> [*]
+    }
+
+    CheckFormat --> SubmissionRejected: Failed Format Assertion
+    CheckFormat --> CheckChampion: Format Validation OK
+
+    state CheckChampion {
+        [*] --> ReadChampionJson
+        ReadChampionJson --> CompareCvScore
+        CompareCvScore --> CheckHashIntegrity
+        CheckHashIntegrity --> [*]
+    }
+
+    CheckChampion --> SubmissionBlocked: CV <= Current Champion
+    CheckChampion --> CheckSecrets: CV > Current Champion (0.96224)
+
+    state CheckSecrets {
+        [*] --> ScanStagedCode
+        ScanStagedCode --> VerifyZeroTokens
+        VerifyZeroTokens --> [*]
+    }
+
+    CheckSecrets --> SubmissionHalted: Secrets / Hardcoded Keys Detected
+    CheckSecrets --> KaggleDispatch: All Gates Passed
+
+    state KaggleDispatch {
+        [*] --> RequestBlobUrl: kaggle.start_competition_submission_upload
+        RequestBlobUrl --> StreamPayload: upload_blob.py
+        StreamPayload --> FinalizeSubmission: kaggle.submit_to_competition
+        FinalizeSubmission --> UpdateChampionRegistry: Write new CHAMPION.json
+        UpdateChampionRegistry --> [*]
+    }
+
+    KaggleDispatch --> [*]
+    SubmissionRejected --> [*]
+    SubmissionBlocked --> [*]
+    SubmissionHalted --> [*]
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 9: EXTENSIBILITY & CUSTOM DETAIL SECTIONS
+           ===================================================================== -->
+      <section id="custom-sections" class="arch-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <span class="section-tag">Modular Expansion</span>
+            <h2 class="section-title">Extensible Detail Sections & Experiment Loggers</h2>
+            <p class="section-desc">
+              Dedicated pluggable sections designed for engineering teams to drop in new feature analyses,
+              ablation logs, post-processing formulas, or leaderboard observations.
+            </p>
+          </div>
+        </div>
+
+        <!-- Accordion 1: Feature Ladder & Ablation Results -->
+        <details class="accordion" open>
+          <summary>Experiment Slot A: Feature Ablation Ladder & Shapley Impacts</summary>
+          <div class="accordion-content">
+            <p>Track feature additions, ablation runs, and fold-wise feature importances here:</p>
+            <div class="spec-table-wrap">
+              <table class="spec-table">
+                <thead>
+                  <tr>
+                    <th>Feature Cluster</th>
+                    <th>Transformation Method</th>
+                    <th>$\Delta$ OOF ROC AUC</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>risk_flags_sum</code></td>
+                    <td>Row-wise sum of 6 binary mismatch/fraud flags</td>
+                    <td>+0.00342</td>
+                    <td><span class="pill pill-green">Merged</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>amount_to_balance_ratio</code></td>
+                    <td>$\text{amount\_usd} / (\text{account\_balance\_usd} + 1.0)$</td>
+                    <td>+0.00281</td>
+                    <td><span class="pill pill-green">Merged</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>exact_cents & dec_keys</code></td>
+                    <td>Modulo cents & decimal digit key extraction</td>
+                    <td>+0.00194</td>
+                    <td><span class="pill pill-green">Merged</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>velocity_times_risk</code></td>
+                    <td>$\text{velocity\_score} \times \text{merchant\_risk\_score}$</td>
+                    <td>+0.00115</td>
+                    <td><span class="pill pill-green">Merged</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+
+        <!-- Accordion 2: Post-Processing & Calibration Notes -->
+        <details class="accordion">
+          <summary>Experiment Slot B: Post-Processing, Threshold Tuning & Pseudolabeling</summary>
+          <div class="accordion-content">
+            <p>Document post-processing interventions, thresholding, or test pseudolabeling loops:</p>
+            <pre><code># Example: Monotonic Rank Calibration & Threshold Search
+from scipy.stats import rankdata
+
+def post_process_preds(oof_preds, test_preds):
+    norm_oof = rankdata(oof_preds) / len(oof_preds)
+    norm_test = rankdata(test_preds) / len(test_preds)
+    return norm_oof, norm_test</code></pre>
+          </div>
+        </details>
+
+        <!-- Accordion 3: Leaderboard Delta & Shakeup Safeguards -->
+        <details class="accordion">
+          <summary>Experiment Slot C: Leaderboard Shakeup Safeguard Analysis</summary>
+          <div class="accordion-content">
+            <p>
+              The public leaderboard tests only ~30% of the test set (~90,000 rows). 
+              The remaining ~70% (~210,000 rows) comprises the private leaderboard.
+              To survive public-to-private shakeup:
+            </p>
+            <ul style="padding-left: 20px; line-height: 1.8; margin-top: 8px;">
+              <li>Never select a submission based purely on a lucky public leaderboard spike ($\le +0.0002$) if CV drops.</li>
+              <li>Always pair one high-performing blend with a conservative, regularized 5-fold baseline.</li>
+              <li>Enforce rank-averaging to protect against distribution shift in unlabelled test probabilities.</li>
+            </ul>
+          </div>
+        </details>
+
+        <!-- Template Placeholder for New Modules -->
+        <div class="template-box" style="margin-top: 20px;">
+          <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: var(--accent-primary);">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main);">Add Custom Detail Section</h3>
+          <p>
+            You can drop in additional sections by creating new <code>&lt;section class="arch-section"&gt;</code> blocks or
+            adding <code>&lt;details class="accordion"&gt;</code> elements with custom Mermaid diagrams or analysis tables.
+          </p>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           SECTION 10: REPOSITORY TOPOLOGY
+           ===================================================================== -->
+      <section id="repository-map" class="arch-section">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <span class="section-tag">Artifact Map</span>
+            <h2 class="section-title">Directory Topology & Responsibility Map</h2>
+            <p class="section-desc">
+              Deterministic file layout enforcing clean separation between configuration, immutable data,
+              source modules, verification gates, and generated submissions.
+            </p>
+          </div>
+        </div>
+
+        <pre><code>playground-series-s6e10/
+├── configs/
+│   ├── competition.json               # Canonical specs, deadlines, metric rules, LB cutoffs
+│   └── harness2_gemini.env            # Environment configuration for autonomous loop
+├── data/
+│   ├── competition/                   # READ-ONLY raw Kaggle inputs (train.csv, test.csv)
+│   ├── processed/                     # Snappy-compressed Parquets with static fold column
+│   └── fraud_artifacts/               # Cached intermediate representations (wide_lm_stack, part9)
+├── docs/
+│   ├── README.md                      # Documentation root index
+│   ├── 01_project_overview.md         # Problem framing, leaderboard state, metric math
+│   ├── 02_data_dictionary.md          # 18-variable schema, types, skewness, missingness
+│   ├── 03_pipeline_and_modeling.md    # Preprocessing, feature engineering, LGBM baseline
+│   ├── 04_operations_and_submission.md# Quality gates, Kaggle MCP upload protocol
+│   └── architecture/                  # ARCHITECTURE SUBSYSTEM
+│       ├── README.md                  # High-density markdown blueprint
+│       └── index.html                 # Interactive, extensible architecture dashboard
+├── src/
+│   ├── qaggle/                        # Core competitive library
+│   │   ├── repo.py                    # Root resolution & deterministic file pathing
+│   │   ├── cv.py                      # Stratified 5-Fold split validation engine
+│   │   ├── metric.py                  # ROC AUC exact calculation utilities
+│   │   ├── package.py                 # Submission sanity check predicates
+│   │   ├── champion.py                # CHAMPION.json ledger parser & updater
+│   │   └── keys.py                    # Sandboxed Kaggle authentication keys
+│   ├── features.py                    # Domain ratios, risk counts, velocity, spatial
+│   ├── features_ladder.py             # Feature ablation & ladder analysis
+│   ├── make_folds.py                  # Parquet conversion & stratified partitioning
+│   ├── train_fast_baseline.py         # 5-Fold LightGBM baseline runner
+│   ├── train_sota_pipeline.py         # Additive GLM + Residual LightGBM pipeline
+│   ├── autoresearch_stacker.py        # Meta-learner & automated rank blender
+│   └── make_sota_submission.py       # Production SOTA submission generator
+├── tools/
+│   ├── checks/
+│   │   ├── check_submission.py        # Gate 1: Submission validation
+│   │   ├── check_champion.py          # Gate 2: Champion advancement gate
+│   │   └── check_secrets.py           # Gate 3: Credential leak audit
+│   └── kaggle/
+│       └── upload_blob.py             # Authenticated Kaggle blob upload streamer
+├── CHAMPION.json                      # Cryptographically bound current top model ledger
+├── submission.csv                     # Active submission ready for dispatch
+└── pyproject.toml                     # Python dependencies & tooling config</code></pre>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Theme Toggle Controller Script -->
+  <script>
+    (function() {
+      const btn = document.getElementById('themeToggleBtn');
+      const label = document.getElementById('themeLabel');
+      const html = document.documentElement;
+
+      const modes = ['light', 'dark', 'system'];
+      let currentIdx = 0;
+
+      const saved = localStorage.getItem('arch-theme-pref') || 'light';
+      currentIdx = modes.indexOf(saved);
+      if (currentIdx === -1) currentIdx = 0;
+      applyTheme(modes[currentIdx]);
+
+      btn.addEventListener('click', () => {
+        currentIdx = (currentIdx + 1) % modes.length;
+        const newMode = modes[currentIdx];
+        applyTheme(newMode);
+        localStorage.setItem('arch-theme-pref', newMode);
+        window.dispatchEvent(new CustomEvent('themeChanged'));
+      });
+
+      function applyTheme(mode) {
+        if (mode === 'system') {
+          html.removeAttribute('data-theme');
+          label.textContent = 'System';
+        } else if (mode === 'dark') {
+          html.setAttribute('data-theme', 'dark');
+          label.textContent = 'Dark';
+        } else {
+          html.setAttribute('data-theme', 'light');
+          label.textContent = 'Light';
+        }
+      }
+
+      // ScrollSpy active link updating
+      const sections = document.querySelectorAll('.arch-section');
+      const navItems = document.querySelectorAll('.nav-item');
+
+      window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop;
+          if (pageYOffset >= sectionTop - 120) {
+            current = section.getAttribute('id');
+          }
+        });
+
+        navItems.forEach(item => {
+          item.classList.remove('active');
+          if (item.getAttribute('href') === '#' + current) {
+            item.classList.add('active');
+          }
+        });
+      }, { passive: true });
+    })();
+  </script>
+</body>
+</html>
