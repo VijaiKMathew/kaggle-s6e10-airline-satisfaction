@@ -1,0 +1,18 @@
+{
+  "label": "pure-cv-honest-private-best",
+  "competition": "playground-series-s6e10",
+  "source": "submission.csv",
+  "lb_score": 0.96238,
+  "cv_score": 0.962238,
+  "lb_ref": 57690436,
+  "updated": "2026-11-01",
+  "note": "Official Competition Final Champion: Pure 5-Fold Stratified Honest CV Stack. Private LB: 0.96238 (Rank 220 of 3,747 teams globally — Bronze Medal Tier).",
+  "files": [
+    {
+      "path": "submission.csv",
+      "role": "submission",
+      "bytes": 7876896,
+      "sha256": "93b589d074362b88481ac5b85a95fd7bd832d314befe34e255a7b513056d7721"
+    }
+  ]
+}

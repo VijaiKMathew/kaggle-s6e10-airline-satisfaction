@@ -1,0 +1,25 @@
+{
+  "id": "vijaikm/s6e10-champion-orthogonal-stacking-pipeline",
+  "title": "✈️ S6E10 Champion | Orthogonal Stacking & 84D Core",
+  "code_file": "PS_S6E10_Champion_Pipeline.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": false,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "competition_sources": [
+    "playground-series-s6e10"
+  ],
+  "dataset_sources": [
+    "vijaikm/s6e10-downcasted-parquet-5fold"
+  ],
+  "kernel_sources": [],
+  "keywords": [
+    "tabular",
+    "ensemble",
+    "lightgbm",
+    "stacking",
+    "feature-engineering"
+  ]
+}
