@@ -1,7 +1,7 @@
 # Solution Writeup: Orthogonal Multi-Family Logit Stacking & The Gold Medal Summit (Rank 11, LB 0.96213 / CV 0.962240)
 
 > [!NOTE]
-> **Competition Concluded (November 1, 2026):** This writeup documented our peak public leaderboard ascent (Rank 15 / 0.96225). On the final private evaluation (~240,000 samples), our honest 5-fold CV stack finalized at **Rank 220 of 3,747 teams globally (Top 5.8% — Bronze Medal Tier, Private Score: `0.96238`)**, less than 0.000005 AUC from Top 50! For the final post-mortem, CTGAN leaf quantization proof, and Kaggle forum writeup, see [**Kaggle Forum Solution Writeup**](./reports/writeup/KAGGLE_FORUM_SOLUTION_WRITEUP.md) and [**Current Status & Harness 2.0 Roadmap (ELI25)**](./reports/post_mortem/CURRENT_STATUS_AND_ROADMAP_ELI25.md).
+> **Competition Concluded (November 1, 2026):** This writeup documented our peak public leaderboard ascent (Rank 15 / 0.96225). On the final private evaluation (~240,000 samples), our honest 5-fold CV stack finalized at **Rank 220 of 3,747 teams globally (Top 5.8% — Bronze Medal Tier, Private Score: `0.96238`)**, less than 0.000005 AUC from Top 50! For the final post-mortem, CTGAN leaf quantization proof, and Kaggle forum writeup, see [**Kaggle Forum Solution Writeup**](./reports/writeup/KAGGLE_FORUM_SOLUTION_WRITEUP.md) and **Current Status & Harness 2.0 Roadmap (ELI25)** ().
 
 **Competition:** Kaggle Playground Series Season 6 Episode 10 (`playground-series-s6e10`)  
 **Target:** `satisfaction` (Binary classification, evaluated on **ROC AUC**)  
@@ -36,10 +36,10 @@
 ![Figure 3: Full Milestone Progression from Baseline to Gold Summit](docs/images/figure3_leaderboard_progression.png)
 
 ### Figure 4: Regularization Sensitivity ($C$) of the Logit Meta-Learner
-![Figure 4: Regularization Sensitivity of the Logit Meta-Learner](docs/images/figure4_regularization_sweep.png)
+!Figure 4: Regularization Sensitivity of the Logit Meta-Learner ()
 
 ### Figure 5: Global Feature Importance (Gain) & Model Decision Drivers
-![Figure 5: Top 15 Feature Importances Explaining Leaderboard Progression](docs/images/figure5_feature_importance.png)
+!Figure 5: Top 15 Feature Importances Explaining Leaderboard Progression ()
 
 ---
 
@@ -103,7 +103,7 @@ flowchart TD
 3. **Native GBDT Categoricals (Zero One-Hot Encoding):**  
    All text categories were kept native (`categorical_feature` for LightGBM, `cat_features` for CatBoost, `enable_categorical=True` for XGBoost), avoiding memory fragmentation and diluting split choices.
 4. **Guarded Submission Verification:**  
-   Every generated candidate artifact must pass [`tools/checks/check_submission.py`](file:///Users/vijaikm/Documents/Other-AI-stuff/kaggle/playground-series-s6e10/tools/checks/check_submission.py) (verifying row count, non-trivial probability entropy, zero nulls) before initiating Kaggle MCP upload tokens.
+   Every generated candidate artifact must pass `tools/checks/check_submission.py` () (verifying row count, non-trivial probability entropy, zero nulls) before initiating Kaggle MCP upload tokens.
 
 ---
 
@@ -301,7 +301,7 @@ flowchart TD
 
 For an interactive, explorable view of our end-to-end multi-agent and model architecture, we generated a standalone Archify visualization:
 
-- **Interactive Standalone HTML:** [`docs/architecture.html`](file:///Users/vijaikm/Documents/Other-AI-stuff/kaggle/playground-series-s6e10/docs/architecture.html)  
+- **Interactive Standalone HTML:** `docs/architecture.html` ()  
   *(Generated via the Archify engine; passes all validation, schema delivery, and browser accessibility checks).*
 
 ### Architecture Overview

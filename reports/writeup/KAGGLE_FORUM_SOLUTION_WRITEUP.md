@@ -11,7 +11,7 @@
 
 ## System High-Level Design (HLD)
 
-![Figure 0: System Architecture HLD](docs/images/kaggle_media_gallery/figure0_system_hld.png)
+!Figure 0: System Architecture HLD ()
 
 The production pipeline is structured across 5 distinct stages to guarantee zero data leakage and maximize inductive diversity:
 
@@ -61,15 +61,15 @@ Breaking through to the Gold Medal tier required introducing non-tree representa
 ## Visual Summary: Milestones, Weights & Sensitivity
 
 ### Figure 1: Multi-Family Orthogonal Ensembling & Logit Meta-Weights
-![Figure 1: Multi-Family Orthogonal Ensembling & Logit Meta-Weights](docs/images/kaggle_media_gallery/figure1_models_and_weights.png)
+!Figure 1: Multi-Family Orthogonal Ensembling & Logit Meta-Weights ()
 *Left: OOF ROC AUC across 8 modeling paradigms. Right: L2-regularized logistic regression weights showing heavy positive attribution to TabPFN (+0.335) and RealMLP (+0.247) while subtracting collinear tree noise.*
 
 ### Figure 2: The Feature Dilution Effect in GBDTs
-![Figure 2: The Feature Dilution Effect in GBDTs](docs/images/kaggle_media_gallery/figure2_feature_ablation.png)
+!Figure 2: The Feature Dilution Effect in GBDTs ()
 *Ablation delta showing that expanding from 84 core features to 136 interaction crosses degraded 5-fold CV by -47.4u.*
 
 ### Figure 3: Full Milestone Progression from Baseline to Gold Summit (Rank 11)
-![Figure 3: Full Milestone Progression from Baseline to Gold Summit](docs/images/kaggle_media_gallery/figure3_leaderboard_progression.png)
+!Figure 3: Full Milestone Progression from Baseline to Gold Summit ()
 *Milestone curve tracking progression from single LightGBM baseline (0.95869) to the Gold Summit (0.96213).*
 
 ---
